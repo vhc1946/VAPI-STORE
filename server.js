@@ -23,22 +23,8 @@ var RouteVAPI = (url,pak) =>{
   catch{}
   return new Promise((resolve,reject)=>{
     switch(mod){
-      /*
-      case 'REPORTING':{
-        console.log(333);
-        fs.readFile('./controllers/index.html',(err,doc)=>{
-        if(err){
-          res.writeHead(500);
-          res.end('Error');
-        }
-        res.writeHead(200,{'Content-Type':'text/html'})
-        res.end(doc,'utf-8');
-      });
-      return true;
-      break;
-    }*/
-      case 'TEST':{return resolve({body:"330300303"})}
-      case 'APP':{return resolve(AppStoreRouter(pak,vstore));}
+      case 'PING':{return resolve({body:"...PING"})}
+      case 'STORE':{return resolve(AppStoreRouter(pak,vstore));}
       case 'ADMIN':{return resolve(ADMINrouter(task,pak,vstore));}
     }
   });
@@ -86,18 +72,32 @@ http.createServer((req,res)=>{
           }
         }
       );
-    }else{
-      fs.readFile('./controllers/index.html',(err,doc)=>{
+    }else{ //
+      if(req.url.match('\.js$')){ //serve js files
+        var jsPath = path.join(__dirname, 'bin/gui', req.url);
+        var fileStream = fs.createReadStream(jsPath, "UTF-8");
+        res.writeHead(200, {"Content-Type": "text/javascript"});
+        fileStream.pipe(res);
+
+      }
+      if(req.url.match('\.css$')){//serve css files
+        var cssPath = path.join(__dirname, 'bin/gui', req.url);
+        var fileStream = fs.createReadStream(jsPath, "UTF-8");
+        res.writeHead(200, {"Content-Type": "text/css"});
+        fileStream.pipe(res);
+      }else{ //serve html files
+      fs.readFile('./controllers/admin.html',"UTF-8",(err,doc)=>{
           if(err){
             res.writeHead(500);
             res.end();
           }else{
             res.writeHead(200,{'Content-Type':'text/html'});
-            res.end(doc,'utf-8');
+            res.end(doc);
           }
           vapilogger.LOGrequestend(reqlog); //log the end of the request
         });
-      //res.write('bad request');console.log('BAD BODY');res.end()
+        //res.write('bad request');console.log('BAD BODY');res.end()
+      }
     }
   });
 }).listen(port);
